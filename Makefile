@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -g -Wall
+CXXFLAGS = -g -Wall -I/usr/include/openssl -L/usr/lib/x86_64-linux-gnu -lssl -lcrypto
 
 TARGET = deduplicate
 
