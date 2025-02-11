@@ -1,20 +1,25 @@
 CXX = g++
 
-CXXFLAGS = -g -Wall -I/usr/include/openssl -L/usr/lib/x86_64-linux-gnu -lssl -lcrypto
+CXXFLAGS = -g -Wall
+
+LIBRARIES = -lssl -lcrypto
 
 TARGET = deduplicate
 
-INIT_PATH = "./README.md"
-MALICIOUS_PATH = "./ASDASD "
+INIT_PATH = "test/initial_memdump"
+MALICIOUS_PATH = "test/malicious_memdump"
 
 RM = rm -rf
 
 all: clean $(TARGET)
 
 $(TARGET): $(TARGET).cpp
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(TARGET).cpp
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(TARGET).cpp $(LIBRARIES)
 
 run: 
+	./$(TARGET)
+
+test: clean $(TARGET)
 	./$(TARGET) $(INIT_PATH) $(MALICIOUS_PATH)
 
 clean:
