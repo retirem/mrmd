@@ -14,8 +14,15 @@
         return -1;                         \
     } while (0)
 
-const std::size_t chunk_size = 4096;
+#define PRINT(message)                     \
+    do                                     \
+    {                                      \
+        std::cout << message << std::endl; \
+    } while (0)
+
+const std::size_t chunk_size = 2048;
 const std::size_t sha256_md_length = 32;
+const char* output_filename = "deduplicate.bin";
 
 std::string sha256_local(const std::string &input)
 {
@@ -87,18 +94,23 @@ int main(int argc, char *argv[])
         (initial_memdump_file.read(initial_buffer, chunk_size) && malicious_memdump_file.read(malicious_buffer, chunk_size)) ||
         (initial_memdump_file.gcount() > 0 && malicious_memdump_file.gcount() > 0))
     {
-        if (memcmp(sha256_local(initial_buffer).c_str(), sha256_local(malicious_buffer).c_str(), sha256_md_length) == 0)
+        if (memcmp(sha256_local(initial_buffer).c_str(), sha256_local(malicious_buffer).c_str(), sha256_md_length) != 0)
         {
-            std::vector<char> maliciour_part(malicious_buffer, malicious_buffer + malicious_memdump_file.gcount());
-            dedup_memory.insert(dedup_memory.end(), maliciour_part.begin(), maliciour_part.begin() + malicious_memdump_file.gcount());
+            std::vector<char> malicious_part(malicious_buffer, malicious_buffer + malicious_memdump_file.gcount());
+            dedup_memory.insert(dedup_memory.end(), malicious_part.begin(), malicious_part.end());
         }
 
-        initial_buffer[chunk_size] = {0};
-        malicious_buffer[chunk_size] = {0};
+        memset(initial_buffer, 0, chunk_size * sizeof(initial_buffer[0]));
+        memset(malicious_buffer, 0, chunk_size * sizeof(malicious_buffer[0]));
     }
 
     initial_memdump_file.close();
     malicious_memdump_file.close();
+
+    std::ofstream output(output_filename, std::ios::out | std::ios::binary);
+    std::copy(dedup_memory.cbegin(), dedup_memory.cend(), std::ostreambuf_iterator<char>(output));
+
+    output.close();
 
     return 0;
 }
